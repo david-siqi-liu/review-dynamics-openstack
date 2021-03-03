@@ -181,10 +181,15 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
     curr_commit_info.num_prior_commits_bug_fixing = num_prior_commits_bug_fixing
 
 
-def clean(df):
-    # Remove commits by Gerrit
-    mask_gerrit = (df['committer_name'] == 'Gerrit Code Review') & (
-        (df['author_name'] == 'Jenkins') | (df['author_name'] == 'OpenStack Jenkins'))
-    df_clean = df[~mask_gerrit]
+def is_valid_commit(commit):
+    # Remove commits made by Gerrit (usually merge requests)
+    if (commit.committer.name == 'Gerrit Code Review') and \
+        ((commit.author.name == 'Jenkins') or
+         (commit.author.name == 'OpenStack Jenkins')):
+        return False
 
-    return df_clean
+    return True
+
+
+def clean(df):
+    return df
