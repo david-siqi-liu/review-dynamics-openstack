@@ -175,5 +175,6 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
     # Update attributes
     curr_commit_info.num_prior_commits = num_prior_commits
     curr_commit_info.num_prior_authors = len(prior_authors)
-    curr_commit_info.avg_prior_age = sum(prior_ages) / len(prior_ages)
+    curr_commit_info.avg_prior_age = sum(
+        prior_ages) / len(prior_ages) if len(prior_ages) > 0 else 0
     curr_commit_info.num_prior_commits_bug_fixing = num_prior_commits_bug_fixing
