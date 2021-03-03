@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydriller import RepositoryMining, GitRepository
+import numpy as np
 import pandas as pd
 import pathlib
 import math
@@ -178,3 +179,12 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
     curr_commit_info.avg_prior_age = sum(
         prior_ages) / len(prior_ages) if len(prior_ages) > 0 else 0
     curr_commit_info.num_prior_commits_bug_fixing = num_prior_commits_bug_fixing
+
+
+def clean(df):
+    # Remove commits by Gerrit
+    mask_gerrit = (df['committer_name'] == 'Gerrit Code Review') & (
+        (df['author_name'] == 'Jenkins') | (df['author_name'] == 'OpenStack Jenkins'))
+    df_clean = df[~mask_gerrit]
+
+    return df_clean
