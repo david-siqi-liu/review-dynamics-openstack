@@ -1,0 +1,47 @@
+{
+    "cinder": [
+        "Brian Rosmaita",
+        "Eric Harney",
+        "Gorka Eguileor",
+        "Ivan Kolodyazhny",
+        "Jay Bryant",
+        "Lucio Seki",
+        "Rajat Dhasmana",
+        "Sean McGinnis",
+        "Hemna"
+    ],
+    "glance": [
+        "Abhishek Kekane",
+        "Brian Rosmaita",
+        "Dan Smith",
+        "Glance Bot",
+        "Nikhil Komawar",
+        "Sean McGinnis"
+    ],
+    "neutron": [
+        "Akihiro Motoki",
+        "Brian Haley",
+        "Hongbin Lu",
+        "Jakub Libosvar",
+        "Lajos Katona",
+        "Miguel Lavalle",
+        "Nate Johnston",
+        "Oleg Bondarev",
+        "Rodolfo Alonso",
+        "Slawek Kaplonski",
+        "YAMAMOTO Takashi",
+        "LIU Yulong"
+    ],
+    "nova": [
+        "Alex Xu",
+        "Balazs Gibizer",
+        "Dan Smith",
+        "Eric Fried",
+        "Ghanshyam",
+        "John Garbutt",
+        "Lee Yarwood",
+        "stephenfin",
+        "Sylvain Bauza",
+        "melwitt"
+    ]
+}
