@@ -20,10 +20,10 @@ class CommitInfo:
         self.author_date = commit.author_date
         self.commit_date = commit.committer_date
         self.modifications = commit.modifications
-        self.num_lines_added = commit.insertions
-        self.num_lines_deleted = commit.deletions
+        self.num_lines_added = self.get_lines_added()
+        self.num_lines_deleted = self.get_lines_deleted()
         self.num_lines_of_code = self.get_lines_of_code()
-        self.num_files_impacted = commit.files
+        self.num_files_impacted = self.get_files_impacted()
         self.num_dirs_impacted = self.get_dirs_impacted()
         self.min_complexity, self.mean_complexity, self.max_complexity = self.get_complexities()
         self.entropy = self.get_entropy()
@@ -37,6 +37,26 @@ class CommitInfo:
         self.num_future_commits_bug_fixing = 0
         self.fix_inducing = False
 
+    def get_lines_added(self):
+        if len(self.modifications) == 0:
+            return 0
+
+        sum_nadded = 0
+        for file in self.modifications:
+            nadded = file.added if file.added else 0
+            sum_nadded += nadded
+        return sum_nadded
+
+    def get_lines_deleted(self):
+        if len(self.modifications) == 0:
+            return 0
+
+        sum_ndeleted = 0
+        for file in self.modifications:
+            ndeleted = file.removed if file.removed else 0
+            sum_ndeleted += ndeleted
+        return sum_ndeleted
+
     def get_lines_of_code(self):
         if len(self.modifications) == 0:
             return 0
@@ -46,6 +66,17 @@ class CommitInfo:
             nloc = file.nloc if file.nloc else 0
             sum_nloc += nloc
         return sum_nloc
+
+    def get_files_impacted(self):
+        if len(self.modifications) == 0:
+            return 0
+
+        files_impacted = set()
+        for file in self.modifications:
+            for path in [file.old_path, file.new_path]:
+                if path:
+                    files_impacted.add(path)
+        return len(files_impacted)
 
     def get_dirs_impacted(self):
         if len(self.modifications) == 0:
@@ -109,8 +140,8 @@ class CommitInfo:
         d['hash'] = self.hash
         d['author_name'] = self.author
         d['committer_name'] = self.committer
-        d['author_date'] = self.author_date
-        d['commit_date'] = self.commit_date
+        d['author_date'] = self.author_date.strftime("%Y-%m-%d %H:%M:%S")[:10]
+        d['commit_date'] = self.commit_date.strftime("%Y-%m-%d %H:%M:%S")[:10]
         d['num_lines_added'] = self.num_lines_added
         d['num_lines_deleted'] = self.num_lines_deleted
         d['num_lines_of_code'] = self.num_lines_of_code
@@ -137,16 +168,8 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
     # Current commit info
     curr_commit_info = all_commit_info[commit_hash]
     # Prior commits
-    prior_commits = set()
-    for file in curr_commit.modifications:
-        # Prior commits that last modified the same lines
-        bug_inducing_commits = gr.get_commits_last_modified_lines(
-            curr_commit, file)
-        for prior_commit_hashes in bug_inducing_commits.values():
-            for prior_commit_hash in prior_commit_hashes:
-                # Prior commit is in scope
-                if prior_commit_hash in all_commit_info:
-                    prior_commits.add(prior_commit_hash)
+    prior_commits = set(gr.get_commits_last_modified_lines(curr_commit))
+    prior_commits_included = set()
     # No prior commits
     if len(prior_commits) == 0:
         return
@@ -154,6 +177,11 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
     prior_ages = []
     num_prior_commits_bug_fixing = 0
     for prior_commit_hash in prior_commits:
+        # Not in prior commit info,
+        if prior_commit_hash not in all_commit_info:
+            continue
+        # Add to included prior commits
+        prior_commits_included.add(prior_commit_hash)
         # Get prior commit info
         prior_commit_info = all_commit_info[prior_commit_hash]
         # Add to prior ages (in days elapsed)
@@ -167,8 +195,8 @@ def update_prior_and_future_info(commit_hash, gr, all_commit_info):
             prior_commit_info.num_future_commits_bug_fixing += 1
             prior_commit_info.fix_inducing = True
     # Update attributes
-    curr_commit_info.prior_commits = list(prior_commits)
-    curr_commit_info.num_prior_commits = len(prior_commits)
+    curr_commit_info.prior_commits = list(prior_commits_included)
+    curr_commit_info.num_prior_commits = len(prior_commits_included)
     curr_commit_info.avg_prior_age = sum(prior_ages) / len(prior_ages) \
         if len(prior_ages) > 0 else 0
     curr_commit_info.num_prior_commits_bug_fixing = num_prior_commits_bug_fixing
