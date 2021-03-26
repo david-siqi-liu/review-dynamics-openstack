@@ -1,0 +1,177 @@
+---
+title: "RQ1 - Features"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(Rnalytica)
+```
+
+
+# Data
+
+## Load data
+
+```{r}
+data = read.csv("../data/rq1/rq1_all.csv", header = TRUE)
+```
+
+```{r}
+data %>% count(project)
+```
+
+Display all columns
+
+```{r}
+colnames(data)
+```
+
+## Variables
+
+Dependent/target variable
+
+```{r}
+target_var = 'pos_vote'
+```
+
+```{r}
+data %>% count(pos_vote)
+```
+
+Patch-level variables
+
+```{r}
+patch_vars = c(
+  'num_lines_added',
+  'num_lines_deleted',
+  'num_lines_of_code', # number of lines in the files before the change
+  'num_file_impacted',
+  'num_dirs_impacted',
+  'mean_complexity', # average Cyclomatic Complexity
+  'entropy', # dispersion of modified lines across files
+  'bug_fixing', # whether or not the patch is for fixing bugs
+  'description_length',
+  'num_prior_commits', # number of prior patches that impact the same modified lines
+  'num_prior_commits_bug_fixing',
+  'avg_prior_age' # average of time intervals (in days) between prior patches and this patch
+)
+```
+
+Review-level variables
+
+```{r}
+review_vars = c(
+  'num_prior_votes',
+  'pct_prior_pos_votes', # % of votes that are positive
+  'pct_prior_neg_votes',
+  'pct_prior_pos_votes_core', # % of positive votes that come from core devs
+  'pct_prior_neg_votes_core',
+  'author_is_core', # is author a core developer
+  'pct_prior_commits_author_authored', # % of prior patches that were made by the same author
+  'pct_prior_commits_author_reviewed',
+  'reviewer_is_core', # is reviewer a core developer
+  'pct_prior_commits_reviewer_authored', # % of prior patches that were made by the reviewer
+  'pct_prior_commits_reviewer_reviewed'
+)
+```
+
+All variables
+
+```{r}
+all_vars = c(patch_vars, review_vars)
+```
+
+Check if all variables are in column
+
+```{r}
+for (v in all_vars){
+  if (!is.element(v, colnames(data))){
+    print(v)
+  }
+}
+```
+
+Check which columns are not in vars
+
+
+```{r}
+for (col in colnames(data)){
+  if (!is.element(col, all_vars)){
+    print(col)
+  }
+}
+```
+
+# Correlation Analysis
+
+Visualize pair-wise correlations (note that categorical variables are not inside)
+
+```{r}
+plotVarClus(dataset = data,
+            metrics = all_vars,
+            correlation = "spearman",
+            correlation.threshold = 0.7)
+```
+
+Conduct AutoSpearman
+
+```{r}
+vars_survived = AutoSpearman(dataset = data,
+                             metrics = all_vars,
+                             spearman.threshold = 0.7,
+                             verbose = TRUE)
+```
+
+Survived variables
+
+```{r}
+vars_survived
+```
+
+Eliminated variables
+
+```{r}
+for (v in all_vars){
+  if (!is.element(v, vars_survived)){
+    print(v)
+  }
+}
+```
+
+Survived variabels for patch and review
+
+```{r}
+patch_vars_survived = patch_vars[patch_vars %in% vars_survived]
+print(patch_vars_survived)
+```
+
+```{r}
+review_vars_survived = review_vars[review_vars %in% vars_survived]
+print(review_vars_survived)
+```
+
+# Mixed-Effect Model
+
+## Formulas
+
+```{r}
+base_form = paste(target_var, ' ~ ',
+                  paste(vars_survived, collapse = " + "),
+                  " + (1 | reviewer_id)")
+base_form
+```
+
+```{r}
+patch_form = paste(target_var, ' ~ ',
+                   paste(patch_vars_survived, collapse = " + "),
+                   " + (1 | reviewer_id)")
+patch_form
+```
+
+```{r}
+review_form = paste(target_var, ' ~ ',
+                    paste(review_vars_survived, collapse = " + "),
+                    " + (1 | reviewer_id)")
+review_form
+```
