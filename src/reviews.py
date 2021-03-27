@@ -38,7 +38,7 @@ VOTES_REGEX_PATTERNS = {
     ]
 }
 
-with open('..\data\core_devs.json', 'r') as j:
+with open('../data/core_devs.json', 'r') as j:
     CORE_DEVS = json.loads(j.read())
 
 
@@ -52,9 +52,16 @@ def get_change_id(msg):
     return change_id
 
 
-def get_review_info(project, response):
+# patches_written[i] = number of patches i wrote in total
+patches_written = Counter()
+# review_interactions[i][j] = number of patches i wrote and j reviewed
+review_interactions = defaultdict(Counter)
+
+
+def get_review_info(project, response, author_name):
     reviews = defaultdict(lambda x: {})
     votes = defaultdict(lambda x: 0)
+    comments_count = Counter()
     for res in response:
         try:
             reviewer_id = res['author']['_account_id']
@@ -77,6 +84,7 @@ def get_review_info(project, response):
         # If vote is 0, then it is not a vote, skip current comment
         vote = get_vote_from_message(msg)
         if vote == 0:
+            comments_count[reviewer_name] += 1
             continue
         # Get prior vote info
         num_prior_votes, \
@@ -85,12 +93,18 @@ def get_review_info(project, response):
                 project, reviewer_name, votes)
         # Check if core developer member
         is_core = reviewer_name in CORE_DEVS[project]
+        # Other comments
+        num_prior_comments = sum(comments_count.values())
+        pct_prior_comments_by_reviewer = comments_count[reviewer_name] / \
+            num_prior_comments if num_prior_comments > 0 else 0
         # Update review info
         review = {
             'reviewer_id': reviewer_id,
             'reviewer_name': reviewer_name,
             'reviewer_vote': vote,
             'reviewer_is_core': is_core,
+            'num_prior_comments': num_prior_comments,
+            'pct_prior_comments_by_reviewer': pct_prior_comments_by_reviewer,
             'num_prior_votes': num_prior_votes,
             'pct_prior_pos_votes':  num_prior_pos_votes / num_prior_votes if num_prior_votes > 0 else 0,
             'pct_prior_neg_votes':  num_prior_neg_votes / num_prior_votes if num_prior_votes > 0 else 0,
@@ -101,8 +115,30 @@ def get_review_info(project, response):
         reviews[reviewer_name] = review
         # Update vote info
         votes[reviewer_name] = vote
+    # Get interaction frequency between each reviewer and the author
+    for reviewer_name, review in reviews.items():
+        review['reviewer_freq'] = get_reviewer_freq(reviewer_name, author_name)
+    # Increment number of patches the author had written
+    patches_written[author_name] += 1
     # Return only the values (i.e., reviews) in a list
     return reviews.values()
+
+
+def get_reviewer_freq(reviewer_name, author_name):
+    # Author hasn't written any patch before, or
+    # Reviewer hasn't reviewed for the author before
+    if (author_name not in patches_written) or \
+            (reviewer_name not in review_interactions[author_name]):
+        review_interactions[author_name][reviewer_name] = 1
+        return 0
+    num_patches_written = patches_written[author_name]
+    assert num_patches_written > 0
+    num_interactions = review_interactions[author_name][reviewer_name]
+    assert num_interactions > 0
+    assert num_interactions <= num_patches_written
+    # Increment counter
+    review_interactions[author_name][reviewer_name] += 1
+    return num_interactions / num_patches_written
 
 
 def is_code_review_removal_message(msg):
