@@ -14,7 +14,7 @@ library(Rnalytica)
 ## Load data
 
 ```{r}
-data = read.csv("../data/rq1/rq1_all.csv", header = TRUE)
+data = read.csv("../data/rq1/rq1_all_norm.csv", header = TRUE)
 ```
 
 ```{r}
@@ -39,7 +39,7 @@ target_var = 'pos_vote'
 data %>% count(pos_vote)
 ```
 
-Patch-level variables
+Patch variables
 
 ```{r}
 patch_vars = c(
@@ -54,32 +54,42 @@ patch_vars = c(
   'description_length',
   'num_prior_commits', # number of prior patches that impact the same modified lines
   'num_prior_commits_bug_fixing',
-  'avg_prior_age' # average of time intervals (in days) between prior patches and this patch
+  'avg_prior_age', # average of time intervals (in days) between prior patches and this patch
+  'author_is_core', # is author a core developer
+  'author_is_exp_author', # % of prior patches that were made by the same author > 0.05
+  'author_is_exp_reviewer'
 )
 ```
 
-Review-level variables
+Dynamic variables
 
 ```{r}
-review_vars = c(
+dynamic_vars = c(
+  'num_prior_comments',
   'num_prior_votes',
   'pct_prior_pos_votes', # % of votes that are positive
-  'pct_prior_neg_votes',
   'pct_prior_pos_votes_core', # % of positive votes that come from core devs
-  'pct_prior_neg_votes_core',
-  'author_is_core', # is author a core developer
-  'pct_prior_commits_author_authored', # % of prior patches that were made by the same author
-  'pct_prior_commits_author_reviewed',
-  'reviewer_is_core', # is reviewer a core developer
-  'pct_prior_commits_reviewer_authored', # % of prior patches that were made by the reviewer
-  'pct_prior_commits_reviewer_reviewed'
+  'pct_prior_neg_votes_core'
+)
+```
+
+
+Reviewer variables
+
+```{r}
+reviewer_vars = c(
+  'reviewer_freq', # % of prior patches the author written AND reviewed by reviewer
+  'pct_prior_comments_by_reviewer',
+  'reviewer_is_core',
+  'reviewer_is_exp_author', # % of prior patches that were made by the reviewer > 0
+  'reviewer_is_exp_reviewer'
 )
 ```
 
 All variables
 
 ```{r}
-all_vars = c(patch_vars, review_vars)
+all_vars = c(patch_vars, dynamic_vars, reviewer_vars)
 ```
 
 Check if all variables are in column
@@ -139,7 +149,7 @@ for (v in all_vars){
 }
 ```
 
-Survived variabels for patch and review
+Survived variabels for each category
 
 ```{r}
 patch_vars_survived = patch_vars[patch_vars %in% vars_survived]
@@ -147,31 +157,109 @@ print(patch_vars_survived)
 ```
 
 ```{r}
-review_vars_survived = review_vars[review_vars %in% vars_survived]
-print(review_vars_survived)
+dynamic_vars_survived = dynamic_vars[dynamic_vars %in% vars_survived]
+print(dynamic_vars_survived)
 ```
-
-# Mixed-Effect Model
-
-## Formulas
 
 ```{r}
-base_form = paste(target_var, ' ~ ',
-                  paste(vars_survived, collapse = " + "),
-                  " + (1 | reviewer_id)")
-base_form
+reviewer_vars_survived = reviewer_vars[reviewer_vars %in% vars_survived]
+print(reviewer_vars_survived)
 ```
+
+Save
+
+```{r}
+save(target_var, patch_vars_survived, dynamic_vars_survived, reviewer_vars_survived, file = "outputs/features.Rdata")
+```
+
+# Mixed-Effect Model Formulas
+
+## Null
+
+```{r}
+null_form = paste(target_var, ' ~ 1',
+                  " + (1 | reviewer_id)")
+null_form
+```
+
+## Single
+
+Only patch
 
 ```{r}
 patch_form = paste(target_var, ' ~ ',
-                   paste(patch_vars_survived, collapse = " + "),
+                   paste(c(patch_vars_survived), collapse = " + "),
                    " + (1 | reviewer_id)")
 patch_form
 ```
 
+Only dynamic
+
 ```{r}
-review_form = paste(target_var, ' ~ ',
-                    paste(review_vars_survived, collapse = " + "),
-                    " + (1 | reviewer_id)")
-review_form
+dynamic_form = paste(target_var, ' ~ ',
+                     paste(c(dynamic_vars_survived), collapse = " + "),
+                     " + (1 | reviewer_id)")
+dynamic_form
+```
+
+Only patch
+
+```{r}
+reviewer_form = paste(target_var, ' ~ ',
+                      paste(c(reviewer_vars_survived), collapse = " + "),
+                      " + (1 | reviewer_id)")
+reviewer_form
+```
+
+## Double
+
+Exclude patch
+
+```{r}
+ex_patch_form = paste(target_var, ' ~ ',
+                      paste(c(dynamic_vars_survived,
+                              reviewer_vars_survived), collapse = " + "),
+                  " + (1 | reviewer_id)")
+ex_patch_form
+```
+
+Exclude dynamic
+
+```{r}
+ex_dynamic_form = paste(target_var, ' ~ ',
+                        paste(c(patch_vars_survived,
+                                reviewer_vars_survived), collapse = " + "),
+                  " + (1 | reviewer_id)")
+ex_dynamic_form
+```
+
+Exclude reviewer
+
+```{r}
+ex_reviewer_form = paste(target_var, ' ~ ',
+                         paste(c(patch_vars_survived,
+                                 dynamic_vars_survived), collapse = " + "),
+                         " + (1 | reviewer_id)")
+ex_reviewer_form
+```
+
+## All
+
+```{r}
+full_form = paste(target_var, ' ~ ',
+                  paste(c(patch_vars_survived,
+                          dynamic_vars_survived,
+                          reviewer_vars_survived), collapse = " + "),
+                  " + (1 | reviewer_id)")
+full_form
+```
+
+Save
+
+```{r}
+save(null_form,
+     patch_form, dynamic_form, reviewer_form,
+     ex_patch_form, ex_dynamic_form, ex_reviewer_form,
+     full_form,
+     file = "outputs/formulas.Rdata")
 ```

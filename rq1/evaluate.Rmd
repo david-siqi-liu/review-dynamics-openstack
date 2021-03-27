@@ -1,0 +1,181 @@
+---
+title: "RQ1 - Evaluate"
+output: html_notebook
+---
+
+```{r}
+library(lme4)
+```
+
+```{r}
+source("../utils.R")
+```
+
+# Load
+
+## Variables
+
+```{r}
+load(file = "outputs/features.Rdata")
+```
+
+
+## Trained Models
+
+```{r}
+load(file = "outputs/null_model.Rdata")
+load(file = "outputs/ex_patch_model.Rdata")
+load(file = "outputs/ex_dynamic_model.Rdata")
+load(file = "outputs/ex_reviewer_model.Rdata")
+load(file = "outputs/full_model.Rdata")
+```
+
+# Evaluate
+
+## NULL Model
+
+```{r}
+print(null_model)
+```
+
+```{r}
+null_re_var = getREVar(null_model)
+
+print(null_re_var)
+```
+
+```{r}
+null_auc = getAUC(null_model, target_var)
+
+print(null_auc)
+```
+
+## Full Model
+
+```{r}
+print(full_model)
+```
+
+```{r}
+full_re_var = getREVar(full_model)
+
+print(full_re_var)
+```
+
+```{r}
+full_auc = getAUC(full_model, target_var)
+
+print(full_auc)
+```
+
+```{r}
+full_lr = getLR(null_model, full_model)
+
+print(full_lr)
+```
+
+```{r}
+full_vars = getVariableSigAndSign(full_model)
+
+print(full_vars)
+```
+
+## Ex Patch Model
+
+```{r}
+print(ex_patch_model)
+```
+
+```{r}
+ex_patch_auc = getAUC(ex_patch_model, target_var)
+
+print(ex_patch_auc)
+```
+
+```{r}
+patch_lr = getLR(ex_patch_model, full_model)
+
+print(patch_lr)
+```
+
+```{r}
+patch_lr$lr / full_lr$lr
+```
+
+## Ex Dynamic Model
+
+```{r}
+print(ex_dynamic_model)
+```
+
+```{r}
+ex_dynamic_auc = getAUC(ex_dynamic_model, target_var)
+
+print(ex_dynamic_auc)
+```
+
+
+```{r}
+dynamic_lr = getLR(ex_dynamic_model, full_model)
+
+print(dynamic_lr)
+```
+
+```{r}
+dynamic_lr$lr / full_lr$lr
+```
+
+
+## Ex Reviewer Model
+
+```{r}
+print(ex_reviewer_model)
+```
+
+```{r}
+ex_reviewer_auc = getAUC(ex_reviewer_model, target_var)
+
+print(ex_reviewer_auc)
+```
+
+
+```{r}
+reviewer_lr = getLR(ex_reviewer_model, full_model)
+
+print(reviewer_lr)
+```
+
+```{r}
+reviewer_lr$lr / full_lr$lr
+```
+
+# Summaries
+
+AUCs
+
+```{r}
+summary_auc = data.frame('model' = c('null', 'ex_patch', 'ex_dynamic', 'ex_reviewer', 'full'),
+                         'auc' = c(null_auc, ex_patch_auc, ex_dynamic_auc, ex_reviewer_auc, full_auc))
+
+summary_auc$pct_of_null = summary_auc$auc / null_auc
+
+print(summary_auc)
+```
+
+LR
+
+```{r}
+summary_lr = data.frame('model' = c('full', 'patch', 'dynamic', 'reviewer'),
+                        'lr' = c(full_lr$lr, patch_lr$lr, dynamic_lr$lr, reviewer_lr$lr))
+
+summary_lr$pct_of_full = summary_lr$lr / full_lr$lr
+
+print(summary_lr)
+```
+
+Variables
+
+```{r}
+print(full_vars)
+```
+
