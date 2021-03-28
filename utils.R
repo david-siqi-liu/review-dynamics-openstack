@@ -43,10 +43,16 @@ getAUC = function(model, target_var) {
   #' 
   #' @return The AUC-ROC
   
+  model_type = attr(model, "class")[1]
   # predict
-  preds = predict(model)
+  if(model_type == 'glmerMod'){
+    labels = model@frame[, target_var]
+    preds = predict(model)
+  } else if (model_type == 'glm') {
+    labels = model$data[, target_var]
+    preds = predict(model, data = model$data, type = 'response')
+  }
   # compute AUC-ROC
-  labels = model@frame[, target_var]
   auc = auc(labels, preds)
   
   return(auc)
@@ -60,8 +66,13 @@ getVariableSigAndSign = function(model) {
   #' 
   #' @return the Chisq value, significance level and sign for each variable
   
+  model_type = attr(model, "class")[1]
   # ANOVA
-  anova = data.frame(Anova(model, type = 3))
+  if(model_type == 'glmerMod'){
+    anova = data.frame(Anova(model, type = 3))
+  } else {
+    anova = data.frame(Anova(model, type = 3, test.statistic = 'Wald'))
+  }
   chisq_col = 'Chisq'
   pval_col = 'Pr..Chisq.'
   # Significance
@@ -70,7 +81,11 @@ getVariableSigAndSign = function(model) {
   anova$sig[anova[, pval_col] < 0.01] = "**"
   anova$sig[anova[, pval_col] < 0.001] = "***"
   # Coefficients
-  coefs = data.frame('val' = fixef(model))
+  if(model_type == 'glmerMod'){
+    coefs = data.frame('val' = fixef(model))
+  } else {
+    coefs = data.frame('val' = coef(model))
+  }
   # Sign
   coefs$sign = ifelse(coefs$val < 0, "(-)", "(+)")
   # Merge by row names/variables
