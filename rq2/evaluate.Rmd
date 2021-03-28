@@ -1,0 +1,165 @@
+---
+title: "RQ2 - Evaluate"
+output: html_notebook
+---
+
+```{r}
+source("../utils.R")
+```
+
+# Load
+
+## Variables
+
+```{r}
+load(file = "outputs/features.Rdata")
+```
+
+
+## Trained Models
+
+```{r}
+load(file = "outputs/null_model.Rdata")
+load(file = "outputs/ex_patch_model.Rdata")
+load(file = "outputs/ex_review_model.Rdata")
+load(file = "outputs/ex_social_model.Rdata")
+load(file = "outputs/full_model.Rdata")
+```
+
+# Evaluate
+
+## NULL Model
+
+```{r}
+print(null_model)
+```
+
+```{r}
+null_auc = getAUC(null_model, target_var)
+
+print(null_auc)
+```
+
+## Full Model
+
+```{r}
+print(full_model)
+```
+
+```{r}
+full_auc = getAUC(full_model, target_var)
+
+print(full_auc)
+```
+
+```{r}
+full_lr = getLR(null_model, full_model)
+
+print(full_lr)
+```
+
+```{r}
+full_vars = getVariableSigAndSign(full_model)
+
+print(full_vars)
+```
+
+## Ex Patch Model
+
+```{r}
+print(ex_patch_model)
+```
+
+```{r}
+ex_patch_auc = getAUC(ex_patch_model, target_var)
+
+print(ex_patch_auc)
+```
+
+```{r}
+patch_lr = getLR(ex_patch_model, full_model)
+
+print(patch_lr)
+```
+
+```{r}
+patch_lr$lr / full_lr$lr
+```
+
+## Ex Review Model
+
+```{r}
+print(ex_review_model)
+```
+
+```{r}
+ex_review_auc = getAUC(ex_review_model, target_var)
+
+print(ex_review_auc)
+```
+
+
+```{r}
+review_lr = getLR(ex_review_model, full_model)
+
+print(review_lr)
+```
+
+```{r}
+review_lr$lr / full_lr$lr
+```
+
+
+## Ex Social Model
+
+```{r}
+print(ex_social_model)
+```
+
+```{r}
+ex_social_auc = getAUC(ex_social_model, target_var)
+
+print(ex_social_auc)
+```
+
+
+```{r}
+social_lr = getLR(ex_social_model, full_model)
+
+print(social_lr)
+```
+
+```{r}
+social_lr$lr / full_lr$lr
+```
+
+# Summaries
+
+AUCs
+
+```{r}
+summary_auc = data.frame('model' = c('null', 'ex_patch', 'ex_review', 'ex_social', 'full'),
+                         'auc' = c(null_auc, ex_patch_auc, ex_review_auc, ex_social_auc, full_auc))
+
+summary_auc$pct_of_null = summary_auc$auc / null_auc
+
+print(summary_auc)
+```
+
+LR
+
+```{r}
+summary_lr = data.frame('model' = c('full', 'patch', 'review', 'social'),
+                        'lr' = c(full_lr$lr, patch_lr$lr, review_lr$lr, social_lr$lr))
+
+summary_lr$pct_of_full = summary_lr$lr / full_lr$lr
+
+print(summary_lr)
+```
+
+Variables
+
+```{r}
+print(full_vars)
+```
+

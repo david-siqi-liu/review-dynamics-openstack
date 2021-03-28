@@ -1,0 +1,229 @@
+---
+title: "RQ2 - Features"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(Rnalytica)
+```
+
+
+# Data
+
+## Load data
+
+```{r}
+data = read.csv("../data/rq2/rq2_all_norm.csv", header = TRUE)
+```
+
+```{r}
+data %>% count(project)
+```
+
+Display all columns
+
+```{r}
+colnames(data)
+```
+
+## Variables
+
+Dependent/target variable
+
+```{r}
+target_var = 'fix_inducing'
+```
+
+```{r}
+data %>% count(fix_inducing)
+```
+
+Patch variables
+
+```{r}
+patch_vars = c(
+  'num_lines_added',
+  'num_lines_deleted',
+  'num_lines_of_code', # number of lines in the files before the change
+  'num_file_impacted',
+  'num_dirs_impacted',
+  'mean_complexity', # average Cyclomatic Complexity
+  'entropy', # dispersion of modified lines across files
+  'bug_fixing', # whether or not the patch is for fixing bugs
+  'description_length',
+  'num_prior_commits', # number of prior patches that impact the same modified lines
+  'num_prior_commits_bug_fixing',
+  'avg_prior_age', # average of time intervals (in days) between prior patches and this patch
+  'author_is_core', # is author a core developer
+  'author_is_exp_author', # % of prior patches that were made by the same author > 0.05
+  'author_is_exp_reviewer'
+)
+```
+
+Review variables
+
+```{r}
+review_vars = c(
+  'num_reviewers',
+  'num_comments',
+  'pct_pos'
+)
+```
+
+
+Dynamic metrics
+
+```{r}
+social_vars = c(
+  'pct_pos_prior_pos',
+  'pct_pos_prior_neg',
+  'pct_pos_prior_no_comment',
+  'pct_pos_prior_pos_core',
+  'pct_pos_author_core',
+  'pct_pos_high_freq'
+)
+```
+
+All variables
+
+```{r}
+all_vars = c(patch_vars, review_vars, social_vars)
+```
+
+Check if all variables are in column
+
+```{r}
+for (v in all_vars){
+  if (!is.element(v, colnames(data))){
+    print(v)
+  }
+}
+```
+
+Check which columns are not in vars
+
+
+```{r}
+for (col in colnames(data)){
+  if (!is.element(col, all_vars)){
+    print(col)
+  }
+}
+```
+
+# Correlation Analysis
+
+Visualize pair-wise correlations (note that categorical variables are not inside)
+
+```{r}
+plotVarClus(dataset = data,
+            metrics = all_vars,
+            correlation = "spearman",
+            correlation.threshold = 0.7)
+```
+
+Conduct AutoSpearman
+
+```{r}
+vars_survived = AutoSpearman(dataset = data,
+                             metrics = all_vars,
+                             spearman.threshold = 0.7,
+                             verbose = TRUE)
+```
+
+Survived variables
+
+```{r}
+vars_survived
+```
+
+Eliminated variables
+
+```{r}
+for (v in all_vars){
+  if (!is.element(v, vars_survived)){
+    print(v)
+  }
+}
+```
+
+Survived variabels for each category
+
+```{r}
+patch_vars_survived = patch_vars[patch_vars %in% vars_survived]
+print(patch_vars_survived)
+```
+
+```{r}
+review_vars_survived = review_vars[review_vars %in% vars_survived]
+print(review_vars_survived)
+```
+
+```{r}
+social_vars_survived = social_vars[social_vars %in% vars_survived]
+print(social_vars_survived)
+```
+
+Save
+
+```{r}
+save(target_var, patch_vars_survived, review_vars_survived, social_vars_survived, file = "outputs/features.Rdata")
+```
+
+# Model Formulas
+
+## Null
+
+```{r}
+null_form = paste(target_var, ' ~ 1')
+null_form
+```
+
+## Double
+
+Exclude patch
+
+```{r}
+ex_patch_form = paste(target_var, ' ~ ',
+                      paste(c(social_vars_survived,
+                              review_vars_survived), collapse = " + "))
+ex_patch_form
+```
+
+Exclude review
+
+```{r}
+ex_review_form = paste(target_var, ' ~ ',
+                       paste(c(patch_vars_survived,
+                               social_vars_survived), collapse = " + "))
+ex_review_form
+```
+
+Exclude social
+
+```{r}
+ex_social_form = paste(target_var, ' ~ ',
+                       paste(c(patch_vars_survived,
+                               review_vars_survived), collapse = " + "))
+ex_social_form
+```
+
+## All
+
+```{r}
+full_form = paste(target_var, ' ~ ',
+                  paste(c(patch_vars_survived,
+                          review_vars_survived,
+                          social_vars_survived), collapse = " + "))
+full_form
+```
+
+Save
+
+```{r}
+save(null_form,
+     ex_patch_form, ex_review_form, ex_social_form,
+     full_form,
+     file = "outputs/formulas.Rdata")
+```

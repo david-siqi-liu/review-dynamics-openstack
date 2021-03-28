@@ -1,8 +1,8 @@
 library(lme4)
 
-data = read.csv("../data/rq1/rq1_all_norm.csv", header = TRUE)
+data = read.csv("rq1/data/rq1/rq1_all_norm.csv", header = TRUE)
 
-load("outputs/formulas.Rdata")
+load("rq1/outputs/formulas.Rdata")
 
 # Null
 null_model = glmer(null_form,
