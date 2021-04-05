@@ -1,0 +1,79 @@
+---
+title: "RQ1 - Validation"
+output: html_notebook
+---
+
+```{r}
+library(lme4)
+```
+
+```{r}
+source("../utils.R")
+```
+
+# Load
+
+## Variables
+
+```{r}
+load(file = "outputs/features.Rdata")
+```
+
+## Data
+
+```{r}
+train_data = read.csv("../data/rq1/rq1_all_norm.csv", header = TRUE)
+```
+
+```{r}
+train_data %>% count(project)
+```
+
+```{r}
+val_data = read.csv("../data/rq1/rq1_sahara_norm.csv", header = TRUE)
+```
+
+```{r}
+val_data %>% count(project)
+```
+
+## Trained Models
+
+```{r}
+load(file = "outputs/null_model.Rdata")
+load(file = "outputs/full_model.Rdata")
+```
+
+# Validate
+
+```{r}
+train_null_auc = getAUC(null_model, train_data, target_var)
+
+print(train_null_auc)
+```
+
+```{r}
+val_null_auc = getAUC(null_model, val_data, target_var)
+
+print(val_null_auc)
+```
+
+```{r}
+train_full_auc = getAUC(full_model, train_data, target_var)
+
+print(train_full_auc)
+```
+
+```{r}
+val_full_auc = getAUC(full_model, val_data, target_var)
+
+print(val_full_auc)
+```
+
+```{r}
+train_full_auc / train_null_auc
+```
+
+```{r}
+val_full_auc / val_null_auc
+```

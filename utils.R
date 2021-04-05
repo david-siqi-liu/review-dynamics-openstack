@@ -36,21 +36,23 @@ getLR = function(model0, model1) {
                     'pval' = pval))
 }
 
-getAUC = function(model, target_var) {
+getAUC = function(model, data, target_var) {
   #' Computes AUC-ROC
   #' 
   #' @param model. The model
+  #' @param data. The data
+  #' @param target_var. The target variable
   #' 
   #' @return The AUC-ROC
   
   model_type = attr(model, "class")[1]
   # predict
   if(model_type == 'glmerMod'){
-    labels = model@frame[, target_var]
-    preds = predict(model)
+    labels = data[, target_var]
+    preds = predict(model, newdata = data, type = 'response', allow.new.levels = TRUE)
   } else if (model_type == 'glm') {
-    labels = model$data[, target_var]
-    preds = predict(model, data = model$data, type = 'response')
+    labels = data[, target_var]
+    preds = predict(model, data = data, type = 'response')
   }
   # compute AUC-ROC
   auc = auc(labels, preds)
