@@ -117,7 +117,7 @@ for (col in colnames(data)){
 
 Visualize pair-wise correlations (note that categorical variables are not inside)
 
-```{r}
+```{r, fig.width=10, fig.height=8}
 plotVarClus(dataset = data,
             metrics = all_vars,
             correlation = "spearman",
