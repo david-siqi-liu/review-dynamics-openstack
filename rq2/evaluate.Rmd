@@ -9,6 +9,16 @@ source("../utils.R")
 
 # Load
 
+## Load data
+
+```{r}
+data = read.csv("../data/rq2/rq2_all_norm.csv", header = TRUE)
+```
+
+```{r}
+data %>% count(project)
+```
+
 ## Variables
 
 ```{r}
@@ -35,7 +45,7 @@ print(null_model)
 ```
 
 ```{r}
-null_auc = getAUC(null_model, target_var)
+null_auc = getAUC(null_model, data, target_var)
 
 print(null_auc)
 ```
@@ -47,7 +57,7 @@ print(full_model)
 ```
 
 ```{r}
-full_auc = getAUC(full_model, target_var)
+full_auc = getAUC(full_model, data, target_var)
 
 print(full_auc)
 ```
@@ -71,7 +81,7 @@ print(ex_patch_model)
 ```
 
 ```{r}
-ex_patch_auc = getAUC(ex_patch_model, target_var)
+ex_patch_auc = getAUC(ex_patch_model, data, target_var)
 
 print(ex_patch_auc)
 ```
@@ -93,7 +103,7 @@ print(ex_review_model)
 ```
 
 ```{r}
-ex_review_auc = getAUC(ex_review_model, target_var)
+ex_review_auc = getAUC(ex_review_model, data, target_var)
 
 print(ex_review_auc)
 ```
@@ -117,7 +127,7 @@ print(ex_social_model)
 ```
 
 ```{r}
-ex_social_auc = getAUC(ex_social_model, target_var)
+ex_social_auc = getAUC(ex_social_model, data, target_var)
 
 print(ex_social_auc)
 ```
@@ -163,3 +173,7 @@ Variables
 print(full_vars)
 ```
 
+
+```{r}
+print(full_vars[order(-full_vars$Chisq),])
+```
