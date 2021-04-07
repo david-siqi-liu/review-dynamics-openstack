@@ -59,6 +59,34 @@ getAUC = function(model, data, target_var) {
   return(auc)
 }
 
+getROC = function(model, data, target_var) {
+  #' Get ROC
+  #' 
+  #' @param model. The model
+  #' @param data. The data
+  #' @param target_var. The target variable
+  #' 
+  #' @return The ROC
+  
+  model_type = attr(model, "class")[1]
+  labels = data[, target_var]
+  # predict
+  if(model_type == 'glmerMod'){
+    preds = predict(model, newdata = data, type = 'response', allow.new.levels = TRUE)
+  } else if (model_type == 'glm') {
+    preds = predict(model, newdata = data, type = 'response')
+  }
+  # compute ROC
+  roc = roc(labels, preds,
+            smoothed = TRUE,
+            ci=FALSE,
+            plot=FALSE,
+            print.auc=FALSE)
+  
+  return(roc)
+}
+
+
 getVariableSigAndSign = function(model) {
   #' Extracts Chisq value and computes the significance level and
   #' the sign of the coefficients for each variable
