@@ -46,13 +46,12 @@ getAUC = function(model, data, target_var) {
   #' @return The AUC-ROC
   
   model_type = attr(model, "class")[1]
+  labels = data[, target_var]
   # predict
   if(model_type == 'glmerMod'){
-    labels = data[, target_var]
     preds = predict(model, newdata = data, type = 'response', allow.new.levels = TRUE)
   } else if (model_type == 'glm') {
-    labels = data[, target_var]
-    preds = predict(model, data = data, type = 'response')
+    preds = predict(model, newdata = data, type = 'response')
   }
   # compute AUC-ROC
   auc = auc(labels, preds)
