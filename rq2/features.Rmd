@@ -65,7 +65,7 @@ Review variables
 
 ```{r}
 review_vars = c(
-  'num_reviewers',
+  'num_votes',
   'num_comments',
   'pct_pos'
 )
@@ -78,10 +78,10 @@ Dynamic metrics
 social_vars = c(
   'pct_pos_prior_pos',
   'pct_pos_prior_neg',
-  'pct_pos_prior_no_comment',
+  'avg_pos_prior_num_votes',
+  'avg_pos_prior_num_comments',
   'pct_pos_prior_pos_core',
-  'pct_pos_author_core',
-  'pct_pos_high_freq'
+  'pct_pos_prior_neg_core'
 )
 ```
 
@@ -116,7 +116,7 @@ for (col in colnames(data)){
 
 Visualize pair-wise correlations (note that categorical variables are not inside)
 
-```{r}
+```{r, fig.width=10, fig.height=8}
 plotVarClus(dataset = data,
             metrics = all_vars,
             correlation = "spearman",
