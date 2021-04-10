@@ -26,22 +26,14 @@ train_data = read.csv("../data/rq1/rq1_all_norm.csv", header = TRUE)
 ```
 
 ```{r}
-train_data %>% count(project)
-```
-
-```{r}
 val_data = read.csv("../data/rq1/rq1_sahara_norm.csv", header = TRUE)
-```
-
-```{r}
-val_data %>% count(project)
 ```
 
 ## Trained Models
 
 ```{r}
 load(file = "outputs/null_model.Rdata")
-load(file = "outputs/full_model.Rdata")
+load(file = "outputs/ex_reviewer_model.Rdata")
 ```
 
 # Validate
@@ -59,21 +51,36 @@ print(val_null_auc)
 ```
 
 ```{r}
-train_full_auc = getAUC(full_model, train_data, target_var)
+train_ex_reviewer_auc = getAUC(ex_reviewer_model, train_data, target_var)
 
-print(train_full_auc)
+print(train_ex_reviewer_auc)
 ```
 
 ```{r}
-val_full_auc = getAUC(full_model, val_data, target_var)
+val_ex_reviewer_auc = getAUC(ex_reviewer_model, val_data, target_var)
 
-print(val_full_auc)
+print(val_ex_reviewer_auc)
 ```
 
 ```{r}
-train_full_auc / train_null_auc
+train_ex_reviewer_auc / train_null_auc
 ```
 
 ```{r}
-val_full_auc / val_null_auc
+val_ex_reviewer_auc / val_null_auc
 ```
+
+```{r}
+train_roc = getROC(ex_reviewer_model, train_data, target_var)
+```
+
+```{r}
+val_roc = getROC(ex_reviewer_model, val_data, target_var)
+```
+
+```{r}
+plot(train_roc, col = 'blue', lty=1)
+plot(val_roc, col = 'red', lty=2, add = TRUE)
+legend(1.25, 1, legend=c('train', 'val'), col=c('blue', 'red'), lty=c(1, 2), ncol=1)
+```
+
