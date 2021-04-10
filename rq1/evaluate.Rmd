@@ -84,6 +84,12 @@ full_lr = getLR(null_model, full_model)
 print(full_lr)
 ```
 
+```{r}
+full_vars = getVariableSigAndSign(full_model)
+
+print(full_vars)
+```
+
 ## Ex Patch Model
 
 ```{r}
@@ -187,4 +193,8 @@ Variables
 
 ```{r}
 print(ex_reviewer_vars[order(-ex_reviewer_vars$Chisq),])
+```
+
+```{r}
+print(full_vars[order(-full_vars$Chisq),])
 ```
