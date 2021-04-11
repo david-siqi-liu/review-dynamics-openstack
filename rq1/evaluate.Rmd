@@ -19,10 +19,6 @@ source("../utils.R")
 data = read.csv("../data/rq1/rq1_all_norm.csv", header = TRUE)
 ```
 
-```{r}
-data %>% count(project)
-```
-
 ## Variables
 
 ```{r}
@@ -45,7 +41,7 @@ load(file = "outputs/full_model.Rdata")
 ## NULL Model
 
 ```{r}
-print(null_model)
+summary(null_model)
 ```
 
 ```{r}
@@ -63,7 +59,7 @@ print(null_auc)
 ## Full Model
 
 ```{r}
-print(full_model)
+summary(full_model)
 ```
 
 ```{r}
@@ -93,7 +89,7 @@ print(full_vars)
 ## Ex Patch Model
 
 ```{r}
-print(ex_patch_model)
+summary(ex_patch_model)
 ```
 
 ```{r}
@@ -115,7 +111,7 @@ patch_lr$lr / full_lr$lr
 ## Ex Dynamic Model
 
 ```{r}
-print(ex_dynamic_model)
+summary(ex_dynamic_model)
 ```
 
 ```{r}
@@ -139,7 +135,7 @@ dynamic_lr$lr / full_lr$lr
 ## Ex Reviewer Model
 
 ```{r}
-print(ex_reviewer_model)
+summary(ex_reviewer_model)
 ```
 
 ```{r}
