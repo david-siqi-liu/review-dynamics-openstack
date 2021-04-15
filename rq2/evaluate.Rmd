@@ -15,10 +15,6 @@ source("../utils.R")
 data = read.csv("../data/rq2/rq2_all_norm.csv", header = TRUE)
 ```
 
-```{r}
-data %>% count(project)
-```
-
 ## Variables
 
 ```{r}
@@ -119,6 +115,12 @@ print(review_lr)
 review_lr$lr / full_lr$lr
 ```
 
+```{r}
+ex_review_vars = getVariableSigAndSign(ex_review_model)
+
+print(ex_review_vars)
+```
+
 
 ## Ex Social Model
 
@@ -170,10 +172,5 @@ print(summary_lr)
 Variables
 
 ```{r}
-print(full_vars)
-```
-
-
-```{r}
-print(full_vars[order(-full_vars$Chisq),])
+print(ex_review_vars[order(-ex_review_vars$Chisq),])
 ```

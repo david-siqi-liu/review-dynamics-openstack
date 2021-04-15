@@ -190,7 +190,3 @@ Variables
 ```{r}
 print(ex_reviewer_vars[order(-ex_reviewer_vars$Chisq),])
 ```
-
-```{r}
-print(full_vars[order(-full_vars$Chisq),])
-```
