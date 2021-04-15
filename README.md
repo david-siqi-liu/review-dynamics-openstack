@@ -18,12 +18,12 @@ R 3.6
 ### Folder Structure
 
 ```
-├── data											<- Generated data
-├── notebooks									<- Python notebooks for generating data
+├── data                      <- Generated data
+├── notebooks                 <- Python notebooks for generating data
 ├── presentation
 ├── report
-├── rq1												<- R notebooks for Analysis 1: Evaluation Decision
-├── rq2												<- R notebooks for Analysis 2: Software Quality
-├── utils.R										<- R utility functions
+├── rq1                       <- R notebooks for Analysis 1: Evaluation Decision
+├── rq2                       <- R notebooks for Analysis 2: Software Quality
+├── utils.R                   <- R utility functions
 ```
 
